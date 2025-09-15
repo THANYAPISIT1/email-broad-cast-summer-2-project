@@ -1,48 +1,63 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Link,useNavigate } from "react-router-dom";
-import { validateEmail ,validateUsername, validatePassword } from '../validator/adminValidator';
+import { Link, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { registerUser, selectAuthLoading, selectAuthError, clearError } from '../../store/slices/authSlice';
+import { validateEmail, validateUsername, validatePassword } from '../validator/adminValidator';
 
 const Register = () => {
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const loading = useAppSelector(selectAuthLoading);
+    const error = useAppSelector(selectAuthError);
+    
     const [formData, setFormData] = useState({
         AEmail: '',
         AUsername: '',
         APassword: ''
     });
 
-    const [errors, setErrors] = useState({});
-    const navigate = useNavigate();
+    const [validationError, setValidationError] = useState('');
     
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        // Clear errors when user starts typing
+        if (validationError) setValidationError('');
+        if (error) dispatch(clearError());
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const {AEmail, AUsername, APassword} = formData;
+        const { AEmail, AUsername, APassword } = formData;
 
-        if (validateEmail(AEmail) !== true) {
-            setErrors({ message: validateEmail(AEmail) });
+        // Client-side validation
+        if (!validateEmail(AEmail)) {
+            setValidationError('Please enter a valid email address');
             return;
         }
 
-        if (!validateUsername(AUsername) ) {
-            setErrors({ message: validateUsername(AUsername) });
+        const usernameValidation = validateUsername(AUsername);
+        if (usernameValidation !== true) {
+            setValidationError(usernameValidation);
             return;
         }
     
-        if (!validatePassword(APassword)) {
-            setErrors({ message: validatePassword(APassword) });
+        const passwordValidation = validatePassword(APassword);
+        if (passwordValidation !== true) {
+            setValidationError(passwordValidation);
             return;
         }
 
-        try {
-            const response = await axios.post('http://178.128.48.196:8000/register', formData);
-            
-            console.log(response.data);
+        // Clear validation errors
+        setValidationError('');
 
+        // Dispatch register action
+        const result = await dispatch(registerUser({ AEmail, AUsername, APassword }));
+        
+        if (registerUser.fulfilled.match(result)) {
+            console.log('Registration successful');
+            
             // Reset form after successful registration
             setFormData({
                 AEmail: '',
@@ -50,16 +65,10 @@ const Register = () => {
                 APassword: ''
             });
 
-            // Redirect to login page after successful registration
-            // You can implement this logic based on your routing setup
+            // Redirect to login page
             navigate('/login');
-        } catch (error) {
-            if (error.response && error.response.data) {
-                setErrors(error.response.data);
-            }
-
-            return
         }
+        // Error handling is done through Redux state
     };
 
     return (
@@ -127,8 +136,18 @@ const Register = () => {
                             </label>
                         </div>
                     </div>
-                    {errors.message && <div className="text-red-500 mt-1">{errors.message}</div>}
-                    <button className="w-full mb-4 text-[18px] mt-2 rounded-full bg-white text-sky-600 hover:bg-sky-600 hover:text-white py-2 transition-colors duration-300" type="submit">Register</button>
+                    {(validationError || error) && (
+                        <div className="text-red-500 mt-1">
+                            {validationError || error}
+                        </div>
+                    )}
+                    <button 
+                        className="w-full mb-4 text-[18px] mt-2 rounded-full bg-white text-sky-600 hover:bg-sky-600 hover:text-white py-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed" 
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Registering...' : 'Register'}
+                    </button>
                     <div className="">
                         <span className="m-4">Already have an Account? <Link className="text-blue-300" to='/login'>Sign in</Link></span>
                     </div>

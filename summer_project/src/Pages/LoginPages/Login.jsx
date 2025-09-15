@@ -1,57 +1,72 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from 'axios';
 import React, { useState } from 'react';
-import {validateUsername, validatePassword} from '../validator/adminValidator'
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loginUser, selectAuthLoading, selectAuthError, selectIsAuthenticated, clearError } from '../../store/slices/authSlice';
+import { validateUsername, validatePassword } from '../validator/adminValidator'
 
 const LoginForm = () => {
+    const dispatch = useAppDispatch();
+    const navigate = useNavigate();
+    const loading = useAppSelector(selectAuthLoading);
+    const error = useAppSelector(selectAuthError);
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
+    
     const [formData, setFormData] = useState({
         AUsername: '',
         APassword: ''
     });
-    const [error, setError] = useState({});
-    const navigate = useNavigate();
+    const [validationError, setValidationError] = useState('');
+    
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
+    
+    // Clear errors when component unmounts or when user starts typing
+    useEffect(() => {
+        return () => {
+            dispatch(clearError());
+        };
+    }, [dispatch]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Clear validation errors when user starts typing
+        if (validationError) setValidationError('');
+        if (error) dispatch(clearError());
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const { AUsername, APassword } = formData;
 
-        // ตรวจสอบ username และ password โดยใช้ฟังก์ชั่น validateUsername และ validatePassword
-        if (validateUsername(AUsername) !== true) {
-            setError({ message: validateUsername(AUsername) });
+        // Client-side validation
+        const usernameValidation = validateUsername(AUsername);
+        if (usernameValidation !== true) {
+            setValidationError(usernameValidation);
             return;
         }
     
-        if (!validatePassword(APassword)) {
-            setError({ message: validatePassword(APassword) });
+        const passwordValidation = validatePassword(APassword);
+        if (passwordValidation !== true) {
+            setValidationError(passwordValidation);
             return;
         }
 
-        try {
-            const response = await axios.post('http://178.128.48.196:8000/login', { AUsername, APassword });
-            
-            localStorage.setItem('token', response.data.token);
+        // Clear validation errors
+        setValidationError('');
         
+        // Dispatch login action
+        const result = await dispatch(loginUser({ AUsername, APassword }));
+        
+        if (loginUser.fulfilled.match(result)) {
             console.log('Login successful');
-            console.log(response.data);
-
-            navigate('/')
-        } catch (error) {
-            console.error('Error:', error);
-            if (error.response && error.response.data) {
-                setError({ message: error.response.data.message });
-                console.log(error.response.data.message);
-
-            } else {
-                setError({ message: 'Login failed. Please try again later.' });
-            }
-
-            return
+            navigate('/');
         }
+        // Error handling is done through Redux state
     };
 
     return (
@@ -99,7 +114,11 @@ const LoginForm = () => {
                             </label>
                         </div>
                     </div>
-                    {error.message && <div className="text-red-500 mt-1">{error.message}</div>}
+                    {(validationError || error) && (
+                        <div className="text-red-500 mt-1">
+                            {validationError || error}
+                        </div>
+                    )}
                     <div className="flex justify-between items-center">
                         <div className="flex gap-2 items-center">
                             <input type="checkbox" name="" id="" />
@@ -107,7 +126,13 @@ const LoginForm = () => {
                         </div>
                         <Link className="text-blue-300">Forgot Password?</Link> 
                     </div>
-                        <button className="w-full mb-4 text-[18px] mt-6 rounded-full bg-white text-sky-600 hover:bg-sky-600 hover:text-white py-2 transition-colors duration-300" type="submit">Login</button>
+                        <button 
+                        className="w-full mb-4 text-[18px] mt-6 rounded-full bg-white text-sky-600 hover:bg-sky-600 hover:text-white py-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed" 
+                        type="submit"
+                        disabled={loading}
+                    >
+                        {loading ? 'Logging in...' : 'Login'}
+                    </button>
                     <div className="">
                         <span className="m-4" >New Here? <Link className="text-blue-300" to='/register'>Create an Account</Link></span>
                     </div>

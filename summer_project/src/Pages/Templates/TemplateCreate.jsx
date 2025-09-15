@@ -1,6 +1,7 @@
 import  { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from '../../utils/api';
 import Sidebar from "../../Components/Layouts/Sidebar.jsx";
 import TopNav from "../../Components/Layouts/TopNav.jsx";
 import Editor from "../../Components/Layouts/Editor.jsx";
@@ -36,7 +37,7 @@ const TemplateCreate = () => {
         TContent: data.editorData 
       };
 
-      const response = await axios.post("http://178.128.48.196:8000/templates", postData, {
+      const response = await axios.post(`${API_BASE_URL}/templates`, postData, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }

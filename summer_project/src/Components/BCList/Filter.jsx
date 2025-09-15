@@ -4,6 +4,7 @@ import CreatableSelect from 'react-select/creatable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
+import { API_BASE_URL } from '../../utils/api';
 
 const customStyles = {
   control: base => ({
@@ -27,7 +28,7 @@ const Filter = ({ onStatusChange, onTagChange, onFilterChange, onDateRangeChange
     try {
       const authToken = localStorage.getItem('token');
 
-      const response = await axios.get('http://178.128.48.196:8000/filtertags', {
+      const response = await axios.get(`${API_BASE_URL}/filtertags`, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },

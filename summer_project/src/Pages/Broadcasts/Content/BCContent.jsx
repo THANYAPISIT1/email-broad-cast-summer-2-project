@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from '../../../utils/api';
 import { Pagination } from "@nextui-org/react";
 
 
@@ -19,7 +20,7 @@ const BCContent = ({ setContentName, setSelectedTemplate, broadcastName, email, 
       try {
         const authToken = localStorage.getItem("token");
         const response = await axios.get(
-          `http://178.128.48.196:8000/templates?page=${currentPage}`,
+          `${API_BASE_URL}/templates?page=${currentPage}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,

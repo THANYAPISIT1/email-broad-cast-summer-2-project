@@ -1,10 +1,24 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useEffect } from 'react';
+import { formatDate } from '../../utils/date';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import {
+  fetchBroadcasts,
+  fetchFilterTags,
+  setSelectedTags,
+  setSelectedStatus,
+  setSelectedFilter,
+  setSelectedDateRange,
+  setCurrentPage,
+  selectBroadcasts,
+  selectBroadcastLoading,
+  selectCurrentPage,
+  selectTotalPages,
+  selectFilters,
+} from '../../store/slices/broadcastSlice';
 import Sidebar from '../../Components/Layouts/Sidebar';
 import TopNav from '../../Components/Layouts/TopNav';
 import { FaFileAlt } from "react-icons/fa";
 import Filter from '../../Components/BCList/Filter';
-// import Createbtn from '../../Components/BCList/Createbtn';
 import { Link } from 'react-router-dom';
 import { BsThreeDots } from "react-icons/bs";
 import { Pagination } from "@nextui-org/react";
@@ -12,114 +26,54 @@ import { Button } from "@nextui-org/button";
 
 
 const Broadcast = () => {
-    const [broadcasts, setBroadcasts] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [loading, setLoading] = useState(false);
-
-    const [selectedTags, setSelectedTags] = useState([]);
-    const [selectedStatus, setSelectedStatus] = useState(null);
-    const [selectedFilter, setSelectedFilter] = useState(null);
-    const [selectedDateRange, setSelectedDateRange] = useState([null, null]);
+    const dispatch = useAppDispatch();
+    const broadcasts = useAppSelector(selectBroadcasts);
+    const loading = useAppSelector(selectBroadcastLoading);
+    const currentPage = useAppSelector(selectCurrentPage);
+    const totalPages = useAppSelector(selectTotalPages);
+    const filters = useAppSelector(selectFilters);
 
     useEffect(() => {
-        fetchBroadcasts(currentPage);
-    }, [currentPage, selectedTags, selectedStatus, selectedFilter, selectedDateRange]);
+        dispatch(fetchFilterTags());
+    }, [dispatch]);
 
-    const fetchBroadcasts = async (page) => {
-        setLoading(true);
-        try {
-            const authToken = localStorage.getItem('token');
-
-            const params = {
-                page,
-                startDate: selectedDateRange.startDate, // เพิ่ม startDate
-                endDate: selectedDateRange.endDate, // เพิ่ม endDate
-            };
-
-            if (selectedStatus) {
-                params.status = selectedStatus.value;
-            }
-
-            if (selectedDateRange && selectedDateRange[0] && selectedDateRange[1]) {
-                params.daterange = `${selectedDateRange[0].toISOString()},${selectedDateRange[1].toISOString()}`;
-            }
-
-            if (selectedTags.length > 0) {
-                params.tag = selectedTags.map(tag => tag.value).join(',');
-            }
-
-            if (selectedFilter) {
-                params.filter = selectedFilter.value;
-            }
-
-            const response = await axios.get('http://178.128.48.196:8000/broadcasts', {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`
-                },
-                params: params
-            });
-
-            const data = response.data;
-
-            // Format BUpdate date before setting the broadcasts state
-            const formattedBroadcasts = data.broadcasts.map(broadcast => ({
-                ...broadcast,
-                BUpdate: formatDate(broadcast.BUpdate)
-            }));
-
-            setBroadcasts(formattedBroadcasts);
-            setCurrentPage(page);
-            setTotalPages(data.totalPages);
-        } catch (error) {
-            console.log('Error fetching broadcasts:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Function to format date to "dd/mm/yyyy hh:mm"
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
+    useEffect(() => {
+        const params = {
+            page: currentPage,
+            status: filters.selectedStatus?.value || null,
+            dateRange: filters.selectedDateRange,
+            tags: filters.selectedTags,
+            filter: filters.selectedFilter?.value || null,
+        };
         
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
-    };
-    
-    const handlePaginationChange = async (page) => {
-        fetchBroadcasts(page);
+        dispatch(fetchBroadcasts(params));
+    }, [dispatch, currentPage, filters]);
+
+
+
+    const handlePaginationChange = (page) => {
+        dispatch(setCurrentPage(page));
     };
 
     const handleStatusChange = (status) => {
-        setSelectedStatus(status);
-        setCurrentPage(1);
+        dispatch(setSelectedStatus(status));
+        dispatch(setCurrentPage(1));
     };
 
     const handleDateRangeChange = (dateRange) => {
-        setSelectedDateRange(dateRange);
-        setCurrentPage(1);
+        dispatch(setSelectedDateRange(dateRange));
+        dispatch(setCurrentPage(1));
     };
 
     const handleTagChange = (tags) => {
-        setSelectedTags(tags);
-        setCurrentPage(1);
+        dispatch(setSelectedTags(tags));
+        dispatch(setCurrentPage(1));
     };
 
     const handleFilterChange = (filter) => {
-        setSelectedFilter(filter);
-        setCurrentPage(1);
+        dispatch(setSelectedFilter(filter));
+        dispatch(setCurrentPage(1));
     };
-
-    useEffect(() => {
-        console.log("Selected Tags:", selectedTags);
-        console.log("Selected Status:", selectedStatus);
-        console.log("Selected Filter:", selectedFilter);
-        console.log("Selected Date Range:", selectedDateRange);
-    }, [selectedTags, selectedStatus, selectedFilter, selectedDateRange]);
 
     return (
         <div className='relative'>
@@ -138,7 +92,7 @@ const Broadcast = () => {
                     </header>
                     <hr />
                     <Filter onStatusChange={handleStatusChange}
-                            onDateRangeChange={(startDate, endDate) => handleDateRangeChange(startDate, endDate)} // ปรับเพื่อส่งค่า Date Range
+                            onDateRangeChange={(startDate, endDate) => handleDateRangeChange(startDate, endDate)}
                             onTagChange={handleTagChange}
                             onFilterChange={handleFilterChange} 
 />

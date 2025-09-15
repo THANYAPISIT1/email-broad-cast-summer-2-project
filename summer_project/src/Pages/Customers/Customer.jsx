@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Select from "react-select";
 import { useState, useEffect } from "react";
 import { IoPersonOutline } from "react-icons/io5";
+import { API_BASE_URL } from '../../utils/api';
 import TopNav from "../../Components/Layouts/TopNav";
 import Sidebar from "../../Components/Layouts/Sidebar";
 import { Button } from "@nextui-org/button";
@@ -18,7 +19,7 @@ const Customer = () => {
     try {
       const authToken = localStorage.getItem('token');
       const tagsQuery = tags.length > 0 ? `&selectedLevel=${tags.map(tag => tag.value).join(',')}` : '';
-      const response = await axios.get(`http://178.128.48.196:8000/customers?page=${page}${tagsQuery}`, {
+      const response = await axios.get(`${API_BASE_URL}/customers?page=${page}${tagsQuery}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
