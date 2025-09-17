@@ -1,5 +1,6 @@
 import axios from 'axios'; // Import Axios
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../utils/api';
 
 function Btn({ handleNext, handlePrevious, currentIndex, totalSteps, broadcastName, email, selectedLevel , selectedTID, tag, blacklist, sqlDate, fromName,recipientEveryone }) {
   console.log(broadcastName, email, selectedLevel , selectedTID, tag,)
@@ -11,7 +12,7 @@ function Btn({ handleNext, handlePrevious, currentIndex, totalSteps, broadcastNa
     
     try {
       const response = await axios.post(
-        'http://178.128.48.196:8000/broadcasts',
+        `${API_BASE_URL}/broadcasts`,
         {
           BName: broadcastName,
           BSchedule: sqlDate || '', // get BSchedule

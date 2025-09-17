@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios'; // Import Axios
+import { API_BASE_URL } from '../../utils/api';
 import TopNav from '../../Components/Layouts/TopNav';
 import Sidebar from '../../Components/Layouts/Sidebar';
 import Select from 'react-select';
@@ -10,7 +11,7 @@ function AddNewCustomer() {
   const [name, setName] = useState('');
   const [level, setLevel] = useState('');
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState(''); // State for message
+  const [message, setMessage] = useState(''); 
   const navigate = useNavigate();
 
   const levelOptions = [
@@ -27,11 +28,11 @@ function AddNewCustomer() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const authToken = localStorage.getItem('token'); // Retrieve the token from localStorage
+    const authToken = localStorage.getItem('token');
 
     try {
       const response = await axios.post(
-        'http://178.128.48.196:8000/customers',
+        `${API_BASE_URL}/customers`,
         {
           CusName: name,
           CusEmail: email,
@@ -58,7 +59,7 @@ function AddNewCustomer() {
     } catch (error) {
       console.log(name);
       console.error('Error creating customer:', error);
-      setMessage('Error creating customer. Please try again.'); // Set error message
+      setMessage('Error creating customer. Please try again.'); 
     }
   };
 

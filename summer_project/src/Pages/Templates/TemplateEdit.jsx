@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from '../../utils/api';
 import Sidebar from "../../Components/Layouts/Sidebar.jsx";
 import TopNav from "../../Components/Layouts/TopNav.jsx";
 import Editor from "../../Components/Layouts/Editor.jsx";
@@ -21,7 +22,7 @@ const UpdateTemplate = () => {
       try {
         const authToken = localStorage.getItem("token");
         const response = await axios.get(
-          `http://178.128.48.196:8000/templates/${TID}`,
+          `${API_BASE_URL}/templates/${TID}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -59,7 +60,7 @@ const UpdateTemplate = () => {
       };
 
       await axios.put(
-        `http://localhost:8000/templates/${TID}`,
+        `${API_BASE_URL}/templates/${TID}`,
         putData,
         {
           headers: {

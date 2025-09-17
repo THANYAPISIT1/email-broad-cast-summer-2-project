@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../utils/api';
 import Sidebar from '../../Components/Layouts/Sidebar';
 import TopNav from '../../Components/Layouts/TopNav';
 import { Pagination } from "@nextui-org/react";
@@ -12,7 +13,7 @@ const Transection = () => {
     const fetchActivity = async (page) => {
         try {
             const authToken = localStorage.getItem('token');
-            const response = await axios.get(`http://178.128.48.196:8000/activity-log?page=${page}`, {
+            const response = await axios.get(`${API_BASE_URL}/activity-log?page=${page}`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
                 }

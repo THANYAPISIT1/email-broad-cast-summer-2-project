@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios'; // Import Axios
+import { API_BASE_URL } from '../../utils/api';
 import TopNav from '../../Components/Layouts/TopNav';
 import Sidebar from '../../Components/Layouts/Sidebar';
 import Select from 'react-select';
@@ -29,7 +30,7 @@ function CustomerEdit() {
     const fetchData = async () => {
       try {
         const authToken = localStorage.getItem('token')
-        const response = await axios.get(`http://localhost:8000/customers/${CusID}`,{
+        const response = await axios.get(`${API_BASE_URL}/customers/${CusID}`,{
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -57,7 +58,7 @@ function CustomerEdit() {
 
     try {
       await axios.put(
-        `http://localhost:8000/customers/${CusID}`,
+        `${API_BASE_URL}/customers/${CusID}`,
         {
           CusName: name,
           CusEmail: email,
@@ -88,7 +89,7 @@ function CustomerEdit() {
   const handleDelete = async () => {
     try {
       const authToken = localStorage.getItem('token');
-      await axios.put(`http://178.128.48.196:8000/customers/delete/${CusID}`, null, {
+      await axios.put(`${API_BASE_URL}/customers/delete/${CusID}`, null, {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       navigate("/customers");

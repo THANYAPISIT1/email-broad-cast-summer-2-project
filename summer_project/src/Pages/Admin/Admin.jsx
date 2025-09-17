@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import Select from "react-select";
 import { useState, useEffect } from "react";
 import { IoPersonOutline } from "react-icons/io5";
+import { API_BASE_URL } from '../../utils/api';
 import TopNav from "../../Components/Layouts/TopNav";
 import Sidebar from "../../Components/Layouts/Sidebar";
 import axios from "axios";
@@ -18,7 +19,7 @@ const Admin = () => {
       setLoading(true);
       try {
         const authToken = localStorage.getItem('token');
-        const response = await axios.get(`http://178.128.48.196:8000/admins?page=${page}`, {
+        const response = await axios.get(`${API_BASE_URL}/admins?page=${page}`, {
           headers: {
             'authorization': `Bearer ${authToken}`
           }
